@@ -2,6 +2,8 @@
 
 -- Флаг поддержания работы скрипта
 IsRun = true;
+
+-- Нужен объект - списов заявок робота
  
 function main()
 	log.trace('test4 begin')
@@ -55,12 +57,15 @@ function main()
 	--for line in f:lines() do message(tostring(line));end
 	-- Закрывает файл
 	f:close();
-   
+	
+	
+	-- Вычислить условия покупки и продажи
+    -- Покупка
+	-- Продажа
    
 	-- Цикл будет выполнятся, пока IsRun == true
 	--while IsRun do
 	--   Получить текущую цену
-	-- 	 Вычислить условия покупки и продажи
 	--	 В цикле проверять наступление этих условий
 	--   sleep(100);
 	--end;   
@@ -81,6 +86,14 @@ function mysplit(inputstr, sep)
     end
     return t
 end
+
+-- Функция для отправки приказа на покупку count штук акции ticker 
+function mybuy(ticker, count, price)
+-- поставить заявку на покупку
+-- проконтролировать исполнение заявки
+-- обновить данные в портфеле
+-- переписать портфель в файл
+end 
  
 function OnStop()
    IsRun = false;

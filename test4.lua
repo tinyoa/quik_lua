@@ -48,7 +48,8 @@ function main()
 	end
 	
 	log.trace('3')
-   
+	
+	-- получить цену по инструменту
    
 	log.trace('4')
    

@@ -1,12 +1,12 @@
-﻿log = require "log"
-
--- Флаг поддержания работы скрипта
+﻿-- Флаг поддержания работы скрипта
 IsRun = true;
 
--- Нужен объект - списов заявок робота
- 
+log = require "log"
+myqlua = require "myqlua"
+
 function main()
-	log.trace('test4 begin')
+	
+	log.trace('test6 begin')
 
 	-- Пытается открыть файл в режиме "чтения/записи"
 	f = io.open(getScriptPath().."\\port.prt", "r+");
@@ -41,9 +41,9 @@ function main()
 			arr = mysplit(line, ';')
 			a[n] = { arr }
 			
-			log.trace('line: '..line)
-			log.trace('a['..n..'][1]:'..arr[1]..' '..'a['..n..'][2]:'..arr[2]..' '..'a['..n..'][3]:'..arr[3]..' ')
 			
+			log.trace('line: '..line);
+			log.trace('a['..n..'][1]:'..arr[1]..' '..'a['..n..'][2]:'..arr[2]..' '..'a['..n..'][3]:'..arr[3]..' ');
 			act_list[n] = {}
 			act_list[n][1] = arr[1];
 			act_list[n][2] = arr[2];
@@ -52,16 +52,14 @@ function main()
 					..'act_list['..n..'][2]:'..act_list[n][2]..' '
 					..'act_list['..n..'][3]:'..act_list[n][3]..' ');
 			
-			n = n + 1
+			n = n + 1;
 		--x,y = string.match(line,"([01]+) (%a)") -- двоичные цифры - помещаем в x, букву - в y
 		--a[x]=y -- добавляем эту пару в ассоциативный массив
 	end
 	
-	-- Закрывает файл
-	f:close();
+	log.trace('length act_list: '..#act_list)
 	
-	-- получить цену по инструменту
-	log.trace('3. Получить цены по инструментам')
+	-- Надо перебрать элементы массива и получить для них цены
 	for i = 1, #act_list do
 		log.trace('--: '..act_list[i][1]);
 		if (act_list[i][1] ~= 'rur') then
@@ -69,44 +67,14 @@ function main()
 			price = myqlua.getPrice(ticker);
 			act_list[i][6] = price;
 			--log.trace('price: '..price);
-			log.trace(ticker..'('..act_list[i][3]..') - '..act_list[i][6]);
+			log.trace(ticker..'('..act_list[i][3]..') - '..act_list[i][6] );
 		end
 		
 		-- log.trace('act_list: '..i..' - '..tostring(act_list[i]));
 	end
 	
-	-- сформулировать намерение
-	
---	for i = 1, #a do
---	   MsgBox("Значение элемента №"..i.." : "..a[i][1])
---	end
-   
-	log.trace('4')
-   
-	--f:seek("set",0);
-	-- Перебирает строки файла, выводит их содержимое в сообщениях
-	--for line in f:lines() do message(tostring(line));end
-	
-	
-	
-	-- -- Вычислить условия покупки и продажи
-	
-	
-	
-    -- Покупка
-	-- Продажа
-   
-	-- Цикл будет выполнятся, пока IsRun == true
-	--while IsRun do
-	--   Получить текущую цену
-	
-	--	 В цикле проверять наступление этих условий
-	--   sleep(100);
-	--end;   
-	log.trace('test4 end')
+	log.trace('test6 end')
 end;
-
-
 
 -- Функция возвращае массив строк. разделяет входящую строку inputstr разделителями sep
 function mysplit(inputstr, sep)
@@ -121,29 +89,6 @@ function mysplit(inputstr, sep)
     return t
 end
 
--- Функция для отправки приказа на покупку count штук акции ticker 
-function mybuy(ticker, count, price)
--- поставить заявку на покупку
--- проконтролировать исполнение заявки
--- обновить данные в портфеле
-	-- уменьшить кол-во рублей
-	-- увеличить размер позиции
--- переписать портфель в файл
-	log.trace('mybuy')
-
-end 
-
--- Функция для отправки приказа на продажу count штук акции ticker 
-function mysell(ticker, count, price)
--- поставить заявку на продажу
--- проконтролировать исполнение заявки
--- обновить данные в портфеле
-	-- увеличить кол-во рублей
-	-- уменьшить размер позиции
--- переписать портфель в 
-	log.trace('mysell')
-end 
- 
 function OnStop()
    IsRun = false;
 end;

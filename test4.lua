@@ -1,7 +1,12 @@
 ﻿log = require "log"
+myqlua = require "myqlua"
 
 -- Флаг поддержания работы скрипта
 IsRun = true;
+
+
+LEVEL_STEP = 0.1;
+
 
 -- Нужен объект - списов заявок робота
  
@@ -48,6 +53,8 @@ function main()
 			act_list[n][1] = arr[1];
 			act_list[n][2] = arr[2];
 			act_list[n][3] = arr[3];
+			act_list[n][4] = arr[4];
+			act_list[n][5] = arr[5];
 			log.trace('act_list['..n..'][1]:'..act_list[n][1]..' '
 					..'act_list['..n..'][2]:'..act_list[n][2]..' '
 					..'act_list['..n..'][3]:'..act_list[n][3]..' ');
@@ -65,17 +72,41 @@ function main()
 	for i = 1, #act_list do
 		log.trace('--: '..act_list[i][1]);
 		if (act_list[i][1] ~= 'rur') then
+			log.trace('--: ');
 			ticker = act_list[i][1];
 			price = myqlua.getPrice(ticker);
 			act_list[i][6] = price;
 			--log.trace('price: '..price);
-			log.trace(ticker..'('..act_list[i][3]..') - '..act_list[i][6]);
+			-- log.trace(ticker..'('..act_list[i][3]..') - '..act_list[i][6]);
+			
+			-- сформулировать намерение, что делать и на каких уровнях
+			-- покупать при этой цене
+			act_list[i][7] = act_list[i][3] + act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+			
+			-- продавать при этой цене
+			act_list[i][8] = act_list[i][3] - act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+			
+			
+			-- log.trace(': '..((act_list[i][3] + 1) * LEVEL_STEP));
+			
+			log.trace('-- Тикер:             '..act_list[i][1]);
+			log.trace('Кол-во на балансе:    '..act_list[i][2]);
+			log.trace('Средняя цена лота:    '..act_list[i][3]);
+			log.trace('Номер уровня продажи: '..act_list[i][4]);	--
+			log.trace('Номер уровня покупки: '..act_list[i][5]);
+			log.trace('Текущая цена:         '..act_list[i][6]);
+			log.trace('Цена продажи:         '..act_list[i][7]);
+			log.trace('Цена покупки:         '..act_list[i][8]);
 		end
 		
 		-- log.trace('act_list: '..i..' - '..tostring(act_list[i]));
 	end
 	
-	-- сформулировать намерение
+	
+	
+	
+	
+	
 	
 --	for i = 1, #a do
 --	   MsgBox("Значение элемента №"..i.." : "..a[i][1])

@@ -79,24 +79,31 @@ function main()
 			--log.trace('price: '..price);
 			-- log.trace(ticker..'('..act_list[i][3]..') - '..act_list[i][6]);
 			
-			-- сформулировать намерение, что делать и на каких уровнях
-			-- покупать при этой цене
-			act_list[i][7] = act_list[i][3] + act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+			-- -- сформулировать намерение, что делать и на каких уровнях
+			-- Если в портфеле есть позиции, то считать покупки/продажи от средней цены в портфеле. Иначе - от средней за 7 дней 
+			if act_list[i][2] > 0 then
+				-- покупать при этой цене
+				act_list[i][7] = act_list[i][3] + act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+				
+				-- продавать при этой цене
+				act_list[i][8] = act_list[i][3] - act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+				
+				-- log.trace(': '..((act_list[i][3] + 1) * LEVEL_STEP));
+				log.trace('-- Тикер:             '..act_list[i][1]);
+				log.trace('Кол-во на балансе:    '..act_list[i][2]);
+				log.trace('Средняя цена лота:    '..act_list[i][3]);
+				log.trace('Номер уровня продажи: '..act_list[i][4]);	--
+				log.trace('Номер уровня покупки: '..act_list[i][5]);
+				log.trace('Текущая цена:         '..act_list[i][6]);
+				log.trace('Цена продажи:         '..act_list[i][7]);
+				log.trace('Цена покупки:         '..act_list[i][8]);
+			else
+				-- тут должен быть расчет на цену покупки и заглушка на цену продажи
+				act_list[i][7] = 0;		-- цена продажи
+				-- цена покупки должна считаться от средней за 7 дней 
+				act_list[i][8] = act_list[i][3] - act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
+			end if
 			
-			-- продавать при этой цене
-			act_list[i][8] = act_list[i][3] - act_list[i][3] * (act_list[i][3] + 1) * LEVEL_STEP;
-			
-			
-			-- log.trace(': '..((act_list[i][3] + 1) * LEVEL_STEP));
-			
-			log.trace('-- Тикер:             '..act_list[i][1]);
-			log.trace('Кол-во на балансе:    '..act_list[i][2]);
-			log.trace('Средняя цена лота:    '..act_list[i][3]);
-			log.trace('Номер уровня продажи: '..act_list[i][4]);	--
-			log.trace('Номер уровня покупки: '..act_list[i][5]);
-			log.trace('Текущая цена:         '..act_list[i][6]);
-			log.trace('Цена продажи:         '..act_list[i][7]);
-			log.trace('Цена покупки:         '..act_list[i][8]);
 		end
 		
 		-- log.trace('act_list: '..i..' - '..tostring(act_list[i]));

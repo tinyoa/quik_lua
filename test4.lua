@@ -109,7 +109,7 @@ function main()
 		-- log.trace('act_list: '..i..' - '..tostring(act_list[i]));
 	end
 	
-	
+	-- Проверить наступление условий для 
 	
 	
 	

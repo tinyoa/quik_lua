@@ -24,5 +24,7 @@ function main()
 	log.trace("SEC_PRICE_STEP "..tostring(getParamEx(class_code, sec_code, "SEC_PRICE_STEP").param_value))
 	log.trace("pricemin "..getParamEx("TQBR", sec_code, "pricemin").param_value)
 	
+	
+	
 	log.trace('test9 end')
 end;

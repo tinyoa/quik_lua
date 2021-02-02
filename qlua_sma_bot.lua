@@ -107,57 +107,68 @@ function main()
 			act_list[i][6] = price;
 			--log.trace(ticker..'('..act_list[i][3]..') - '..price );
 			
-			cnt_share = tonumber(act_list[i][2]);		-- Кол-во на балансе
-			avg_price = act_list[i][3];		-- Средняя цена лота
-			cell_level = act_list[i][4];	-- Номер уровня продажи
+			cnt_share = math.floor(tonumber(act_list[i][2]));		-- Кол-во на балансе
+			avg_price = tonumber(act_list[i][3]);		-- Средняя цена лота
+			sell_level = act_list[i][4];	-- Номер уровня продажи
 			buy_level = act_list[i][5];		-- Номер уровня покупки
 			--[[log.trace("ticker"..ticker
 						.."cnt_share: "..cnt_share
 						.."price: "..price
 						.."avg_price: "..avg_price
-						.."cell_level: "..cell_level
+						.."sell_level: "..sell_level
 						.."buy_level: "..buy_level
 					);]]
 			
+			log.trace("-- avg_price: "..avg_price);
+			
 			-- Если есть что продавать, то сравнивается со средней ценой в портфеле
 			if cnt_share > 0 then
-				-- Определить условия при которых будет совершена продажа
-				log.trace("avg_price: "..avg_price.." cell_level: "..cell_level.." PRICE_STEP: "..PRICE_STEP);
-				cell_price = avg_price + avg_price * (cell_level + 1) * PRICE_STEP;	-- Цена продажи	
-				--log.trace("cell_price: "..cell_price);
-				act_list[i][8] = cell_price;	
-				
-				-- Определить условия при которых будет совершена покупка
-				buy_price = avg_price - avg_price * (buy_level + 1) * PRICE_STEP;		-- Цена покупки
-				--log.trace("buy_price: "..buy_price);
-				act_list[i][7] = buy_price;	
+				if avg_price > 0 then 
+					-- Определить условия при которых будет совершена продажа
+					log.trace("avg_price: "..avg_price.." sell_level: "..sell_level.." PRICE_STEP: "..PRICE_STEP);
+					sell_price = avg_price + avg_price * (sell_level + 1) * PRICE_STEP;	-- Цена продажи	
+					--log.trace("sell_price: "..sell_price);
+					act_list[i][8] = sell_price;	
+					
+					-- Определить условия при которых будет совершена покупка
+					buy_price = avg_price - avg_price * (buy_level + 1) * PRICE_STEP;		-- Цена покупки
+					
+					--log.trace("buy_price: "..buy_price);
+					act_list[i][7] = buy_price;	
+				else
+					log.trace("ERROR. avg_price = 0");
+					
+					-- Цену продажи ставлю заградительную
+					sell_price = price * 2;
+				end;
 			else
 				-- возможна только покупка
 				-- Определить условия при которых будет совершена покупка
-				buy_price = myqlua.getSMA_7d(ticker) * (1 - PRICE_STEP)  -- Цена покупки
+				--buy_price = myqlua.getSMA_7d(ticker) -- Цена покупки
+				buy_price = myqlua.getSMA(ticker, INTERVAL_D1, 7)   -- Цена покупки
 				--log.trace("buy_price: "..buy_price);
 				act_list[i][7] = buy_price;	
+				--log.trace("buy_price act_list[i][7]: "..act_list[i][7]);
 				
 				-- Цену продажи ставлю заградительную
-				cell_price = price * 2;
+				sell_price = price * 2;
 			end
 			
 			log.trace("ticker: "..ticker
-						.."; cnt_share: "..cnt_share
-						.."; price: "..price
+						.."; cnt_share: "..myqlua.ifnull(cnt_share, "-")
+						.."; price: "..myqlua.ifnull(price, "-")
 						--.."; avg_price: "..avg_price
-						--.."; cell_level: "..cell_level
-						.."; cell_price: "..cell_price
+						--.."; sell_level: "..sell_level
+						.."; sell_price: "..myqlua.ifnull(sell_price, "-")
 						--.."; buy_level: "..buy_level
-						.."; buy_price: "..buy_price
+						.."; buy_price: "..myqlua.ifnull(buy_price, "-")
 					);
-						
-			-- Если текущая цена выше чем цена продажи, то продаю
-			if  price > cell_price then cell_ticker (ticker) end
 			
+			-- Если текущая цена выше чем цена продажи, то продаю
+			if myqlua.ifnull(sell_price, 0) > 0 and price > sell_price then sell_ticker (ticker) end	
 			 
 			-- Если текущая цена ниже, чем цена покупки, то покупаю
-			if price < buy_price then buy_ticker (ticker) end
+			if myqlua.ifnull(buy_price, 0) > 0 and price < buy_price then buy_ticker (ticker) end
 		else
 			amount_rur = act_list[i][2]
 		end
@@ -180,35 +191,44 @@ function buy_ticker (ticker)
 		if act_list[i][1] == ticker then
 			cnt_share = act_list[i][2];		-- Кол-во на балансе
 			avg_price = act_list[i][3];		-- Средняя цена лота
-			cell_level = act_list[i][4];	-- Номер уровня продажи
-			buy_level = act_list[i][5] + 1;	-- Номер уровня покупки
-			cell_price = act_list[i][8];	
+			sell_level = act_list[i][4];	-- Номер уровня продажи
+			buy_level = act_list[i][5];	-- Номер уровня покупки
+			sell_price = act_list[i][8];	
 			buy_price = act_list[i][7];		
 			
 			
 			-- Определить количество лотов на покупку 
-			cnt_share_to_buy = 2 ^ buy_level;
+			cnt_share_to_buy = math.floor(2 ^ buy_level);
 			
 			-- Костыль, чтобы попасть в шаг цены
-			buy_price = getParamEx("TQBR", ticker, "pricemax").param_value
+			--buy_price = getParamEx("TQBR", ticker, "pricemax").param_value;
+			buy_price = myqlua.getPrice(ticker)
+			log.trace('buy_price: '..buy_price.." cnt_share_to_buy:"..cnt_share_to_buy.." "..type(cnt_share_to_buy));
 			
 			-- Поставить заявку на продажу
-			log.trace('cnt_share_to_buy: '..cnt_share_to_buy..' for price..'..buy_price);
-			--myqlua.buy(ticker, buy_price, cnt_share_to_buy)
+			log.trace('cnt_share_to_buy: '..cnt_share_to_buy..' for price'..buy_price);
+			--myqlua.buy(ticker, buy_price, cnt_share_to_buy)									-- !!!
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] + cnt_share_to_buy;
 			
 			-- Обновить счетчик уровней
 			act_list[i][4] = 0					-- Номер уровня продажи
-			act_list[i][5] = buy_level;			-- Номер уровня покупки
+			act_list[i][5] = buy_level  + 1;			-- Номер уровня покупки
+			
+			
+			--log.trace('sell_price: '..sell_price..' lotsize..'..lotsize);
 			
 			-- Уменьшить счет рублей на цену покупки
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(-cell_price * lotsize)
+			add_rubles(-buy_price * lotsize)
 			
 			-- Средняя цена должна снизиться
-			act_list[i][3] = avg_price * (1 - PRICE_STEP / 2);
+			if avg_price == 0 then
+				act_list[i][3] = buy_price;
+			else
+				act_list[i][3] = avg_price * (1 - PRICE_STEP / 2);
+			end;
 			
 		end; 
 	end;
@@ -218,7 +238,7 @@ end
 
 -- Функция покупки инструмента
 -- Добавить проверку на наличие достаточного количества денег
-function cell_ticker (ticker)
+function sell_ticker (ticker)
 
 	log.trace('CELLING '..ticker);
 	-- Найти строку с этим инструментом 
@@ -226,9 +246,10 @@ function cell_ticker (ticker)
 		if act_list[i][1] == ticker then
 			cnt_share = act_list[i][2];		-- Кол-во на балансе
 			avg_price = act_list[i][3];		-- Средняя цена лота
-			cell_level = act_list[i][4];	-- Номер уровня продажи
+			sell_level = act_list[i][4];	-- Номер уровня продажи
 			buy_level = act_list[i][5];		-- Номер уровня покупки
-			cell_price = act_list[i][8];	-- 
+			-- sell_price = act_list[i][8];	-- 
+			sell_price = myqlua.getPrice(ticker);	-- Цену продажи ставлю текущую
 			buy_price = act_list[i][7];		-- 
 			
 			--log.trace('cnt_share: '..cnt_share);
@@ -245,27 +266,28 @@ function cell_ticker (ticker)
 			
 			
 			-- Костыль, чтобы попасть в шаг цены
-			--cell_price = getParamEx("TQBR", ticker, "pricemin").param_value
+			--sell_price = getParamEx("TQBR", ticker, "pricemin").param_value
 			sec_price_step = getParamEx(class_code, ticker, "SEC_PRICE_STEP").param_value
 			log.trace('sec_price_step: '..sec_price_step);
-			ostatok = cell_price % sec_price_step
+			log.trace('sell_price: '..sell_price);
+			ostatok = sell_price % sec_price_step
 			log.trace('ostatok: '..tostring(ostatok));
-			cell_price = cell_price - ostatok
-			log.trace('cell_price: '..cell_price);
+			sell_price = sell_price - ostatok
+			log.trace('sell_price: '..sell_price);
 			
 			-- Поставить заявку на продажу
-			log.trace('cnt_share_to_cell: '..cnt_share_to_cell..' with price '..tostring(cell_price));
-			---myqlua.sell(ticker, cell_price, cnt_share_to_cell)
+			log.trace('cnt_share_to_cell: '..cnt_share_to_cell..' with price '..tostring(sell_price));
+			---myqlua.sell(ticker, sell_price, cnt_share_to_cell)								-- !!!
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(cell_price * lotsize)
+			add_rubles(sell_price * lotsize)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;
 			
 			-- Обновить счетчик уровней
-			act_list[i][4] = cell_level		-- Номер уровня продажи
+			act_list[i][4] = sell_level		-- Номер уровня продажи
 			act_list[i][5] = 0;				-- Номер уровня покупки
 			
 		end; 
@@ -286,7 +308,7 @@ end
 
 -- Функция должна сохранить портфель из списка act_list
 function save_portfolio(amnt)
-
+	log.trace("save_portfolio")
 
 -- Пытается открыть файл в режиме "чтения/записи"
     f = io.open(getScriptPath().."\\port.prt", "w");
@@ -294,14 +316,14 @@ function save_portfolio(amnt)
 	f:write('rur;'..amount_rur..';1'..'\n');
     for i = 1, #act_list do
 		if (act_list[i][1] ~= 'rur') then
-			line = myqlua.ifnull(act_list[i][1], '')
-				..';'..myqlua.ifnull(act_list[i][2], '')
-				..';'..myqlua.ifnull(act_list[i][3], '')
-				..';'..myqlua.ifnull(act_list[i][4], '')
-				..';'..myqlua.ifnull(act_list[i][5], '')
-				..';'..myqlua.ifnull(act_list[i][6], '')
-				..';'..myqlua.ifnull(act_list[i][7], '')
-				..';'..myqlua.ifnull(act_list[i][8], '')
+			line = myqlua.ifnull(act_list[i][1], 0)
+				..';'..math.floor(myqlua.ifnull(act_list[i][2], 0))
+				..';'..myqlua.ifnull(act_list[i][3], 0)
+				..';'..math.floor(myqlua.ifnull(act_list[i][4], 0))
+				..';'..math.floor(myqlua.ifnull(act_list[i][5], 0))
+				..';'..myqlua.ifnull(act_list[i][6], 0)
+				..';'..myqlua.ifnull(act_list[i][7], 0)
+				..';'..myqlua.ifnull(act_list[i][8], 0)
 		end
 		
 		if not myqlua.isnil(line) then

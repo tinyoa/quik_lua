@@ -35,6 +35,7 @@ PRICE_STEP = 0.1
 local act_list = {} 	-- матрица с инструментами
 local order_list = {}	-- список заявок
 amount_rur = 0			-- кол-во денег
+class_code = "TQBR"
 
 function main()
 	
@@ -98,7 +99,7 @@ function main()
 	
 	-- Надо перебрать элементы массива и получить для них цены
 	for i = 1, #act_list do
-		--log.trace('--: '..act_list[i][1]);
+		log.trace('--: '..act_list[i][1]);
 		if (act_list[i][1] ~= 'rur') then
 			ticker = act_list[i][1];
 			price = myqlua.getPrice(ticker);		-- !!! Заменить обратно, когда заработает сервер
@@ -119,7 +120,6 @@ function main()
 						.."buy_level: "..buy_level
 					);]]
 			
-			log.trace("-- avg_price: "..avg_price);
 			
 			-- Если есть что продавать, то сравнивается со средней ценой в портфеле
 			if cnt_share > 0 then
@@ -154,7 +154,7 @@ function main()
 				sell_price = price * 2;
 			end
 			
-			log.trace("ticker: "..ticker
+			log.trace("--ticker: "..ticker
 						.."; cnt_share: "..myqlua.ifnull(cnt_share, "-")
 						.."; price: "..myqlua.ifnull(price, "-")
 						--.."; avg_price: "..avg_price
@@ -165,12 +165,21 @@ function main()
 					);
 			
 			-- Если текущая цена выше чем цена продажи, то продаю
-			if myqlua.ifnull(sell_price, 0) > 0 and price > sell_price then sell_ticker (ticker) end	
+			if myqlua.ifnull(sell_price, 0) > 0 and price > sell_price then 
+				sell_ticker (ticker) 
+			end	
 			 
 			-- Если текущая цена ниже, чем цена покупки, то покупаю
-			if myqlua.ifnull(buy_price, 0) > 0 and price < buy_price then buy_ticker (ticker) end
+			if myqlua.ifnull(buy_price, 0) > 0 and price < buy_price then 
+				lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
+				if amount_rur > (buy_price * lotsize) then
+					buy_ticker (ticker) 
+				else
+					log.trace("Нет денег на покупку "..ticker)
+				end
+			end
 		else
-			amount_rur = act_list[i][2]
+			amount_rur = tonumber(act_list[i][2])
 		end
 		
 		-- log.trace('act_list: '..i..' - '..tostring(act_list[i]));
@@ -207,14 +216,14 @@ function buy_ticker (ticker)
 			
 			-- Поставить заявку на продажу
 			log.trace('cnt_share_to_buy: '..cnt_share_to_buy..' for price'..buy_price);
-			--myqlua.buy(ticker, buy_price, cnt_share_to_buy)									-- !!!
+			myqlua.buy(ticker, buy_price, cnt_share_to_buy)									-- !!!
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] + cnt_share_to_buy;
 			
 			-- Обновить счетчик уровней
 			act_list[i][4] = 0					-- Номер уровня продажи
-			act_list[i][5] = buy_level  + 1;			-- Номер уровня покупки
+			act_list[i][5] = buy_level + 1;		-- Номер уровня покупки
 			
 			
 			--log.trace('sell_price: '..sell_price..' lotsize..'..lotsize);
@@ -277,7 +286,7 @@ function sell_ticker (ticker)
 			
 			-- Поставить заявку на продажу
 			log.trace('cnt_share_to_cell: '..cnt_share_to_cell..' with price '..tostring(sell_price));
-			---myqlua.sell(ticker, sell_price, cnt_share_to_cell)								-- !!!
+			myqlua.sell(ticker, sell_price, cnt_share_to_cell)								-- !!!
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
@@ -315,6 +324,7 @@ function save_portfolio(amnt)
 	
 	f:write('rur;'..amount_rur..';1'..'\n');
     for i = 1, #act_list do
+		line = nil
 		if (act_list[i][1] ~= 'rur') then
 			line = myqlua.ifnull(act_list[i][1], 0)
 				..';'..math.floor(myqlua.ifnull(act_list[i][2], 0))

@@ -10,12 +10,12 @@ IsRun = true;
 log = require "log"
 myqlua = require "myqlua"
 
-PRICE_STEP = 0.03		-- отклонение, которое считается достаточным для перехода на следующий уровень
+local PRICE_STEP = 0.03		-- отклонение, которое считается достаточным для перехода на следующий уровень
 local act_list = {} 	-- матрица с инструментами
 local order_list = {}	-- список заявок
-amount_rur = 0			-- кол-во денег
-class_code = "TQBR"
-PORTFOLIO_FILE = "portEELT.prt"
+local amount_rur = 0			-- кол-во денег
+local class_code = "TQBR"
+local PORTFOLIO_FILE = "portEELT.prt"
 
 function qlua_sma_botEELT.settings()
 	log.trace("PORTFOLIO_FILE: "..PORTFOLIO_FILE..", PRICE_STEP: "..PRICE_STEP.."")
@@ -57,7 +57,7 @@ function qlua_sma_botEELT.main()
 			a[n] = { arr }
 			
 			
-			log.trace('line: '..line);
+			--log.trace('line: '..line);
 			--log.trace('a['..n..'][1]:'..arr[1]..' '..'a['..n..'][2]:'..arr[2]..' '..'a['..n..'][3]:'..arr[3]..' ');
 			act_list[n] = {}
 			act_list[n][1] = arr[1];	-- Название
@@ -183,7 +183,7 @@ function buy_ticker (ticker)
 	for i = 1, #act_list do
 		if act_list[i][1] == ticker then
 			cnt_share = act_list[i][2];		-- Кол-во на балансе
-			avg_price = act_list[i][3];		-- Средняя цена лота
+			avg_price = tonumber(act_list[i][3]);		-- Средняя цена лота
 			sell_level = act_list[i][4];	-- Номер уровня продажи
 			buy_level = act_list[i][5];	-- Номер уровня покупки
 			sell_price = act_list[i][8];	

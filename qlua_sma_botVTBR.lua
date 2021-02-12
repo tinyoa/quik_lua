@@ -1,46 +1,29 @@
-﻿-- qlua_sma_bot.lua
+﻿-- qlua_sma_botVTBR.lua
 
---[[
-qlua_sma_bot
 
-1. Получить текущую стоимость инструмента
-2. Если в портфеле еще нет бумаги
-    2.1 Если стоимость ниже скользящей средней за 30 дней * 0,9 , то купить
-3. Если бумага в портфеле есть
-    3.1 Если текущая стоимость выше чем цена в портфеле на 10% и прошло более 30 дней с предыдущей продажи (+10%) 
-        3.1.1 продать 50% + 1 <кол-во лотов в портфеле>. 
-        3.1.2 Отметить дату продажи
-    3.2 Если в портфеле уже есть акция и цена ниже чем <цена в портфеле>
-        то при снижении цены ниже чем <цена в портфеле> - 0.1 * <кол-во лотов в портфеле> * <цена в портфеле> купить <кол-во лотов в портфеле> акций по тек. цене
-		
-		
-*Структура файла*
-1. Тикер
-2. Кол-во на балансе
-3. Сумма уплаченных за 
-4. Номер уровня продажи
-5. Номер уровня покупки
-6. Текущая цена
-7. Цена продажи
-8. Цена покупки
-]]
 
+local qlua_sma_botVTBR = { _version = "0.1.1" }
 
 -- Флаг поддержания работы скрипта
 IsRun = true;
 
 log = require "log"
 myqlua = require "myqlua"
-PRICE_STEP = 0.1
+
+local PRICE_STEP = 0.1		-- отклонение, которое считается достаточным для перехода на следующий уровень
 local act_list = {} 	-- матрица с инструментами
 local order_list = {}	-- список заявок
-amount_rur = 0			-- кол-во денег
-class_code = "TQBR"
-PORTFOLIO_FILE = "portEELT.prt"
+local amount_rur = 0			-- кол-во денег
+local class_code = "TQBR"
+local PORTFOLIO_FILE = "portVTBR.prt"
 
-function main()
+function qlua_sma_botVTBR.settings()
+	log.trace("PORTFOLIO_FILE: "..PORTFOLIO_FILE..", PRICE_STEP: "..PRICE_STEP.."")
+end;
+
+function qlua_sma_botVTBR.main()
 	
-	log.trace('-- -- -- -- -- qlua_sma_bot begin')
+	log.trace('-- -- -- '..PORTFOLIO_FILE)
 
 	-- Пытается открыть файл в режиме "чтения/записи"
 	f = io.open(getScriptPath().."\\"..PORTFOLIO_FILE, "r+");
@@ -74,11 +57,11 @@ function main()
 			a[n] = { arr }
 			
 			
-			log.trace('line: '..line);
+			--log.trace('line: '..line);
 			--log.trace('a['..n..'][1]:'..arr[1]..' '..'a['..n..'][2]:'..arr[2]..' '..'a['..n..'][3]:'..arr[3]..' ');
 			act_list[n] = {}
 			act_list[n][1] = arr[1];	-- Название
-			act_list[n][2] = arr[2];	-- 
+			act_list[n][2] = arr[2];	-- Лот
 			act_list[n][3] = arr[3];	-- Цена
 			if (act_list[n][1] ~= 'rur') then
 				act_list[n][4] = arr[4];	-- Номер уровня продажи
@@ -111,8 +94,8 @@ function main()
 			
 			cnt_share = math.floor(tonumber(act_list[i][2]));		-- Кол-во на балансе
 			avg_price = tonumber(act_list[i][3]);		-- Средняя цена лота
-			sell_level = act_list[i][4];	-- Номер уровня продажи
-			buy_level = act_list[i][5];		-- Номер уровня покупки
+			sell_level = act_list[i][4];			-- Номер уровня продажи
+			buy_level = act_list[i][5];				-- Номер уровня покупки
 			--[[log.trace("ticker"..ticker
 						.."cnt_share: "..cnt_share
 						.."price: "..price
@@ -187,9 +170,9 @@ function main()
 	end
 	
 	
-	
-	
 	log.trace('qlua_sma_bot end')
+	
+	return 0
 end;
 
 -- Функция продажи инструмента
@@ -202,7 +185,7 @@ function buy_ticker (ticker)
 			cnt_share = act_list[i][2];		-- Кол-во на балансе
 			avg_price = tonumber(act_list[i][3]);		-- Средняя цена лота
 			sell_level = act_list[i][4];	-- Номер уровня продажи
-			buy_level = act_list[i][5];	-- Номер уровня покупки
+			buy_level = act_list[i][5];		-- Номер уровня покупки
 			sell_price = act_list[i][8];	
 			buy_price = act_list[i][7];		
 			
@@ -233,11 +216,14 @@ function buy_ticker (ticker)
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
 			add_rubles(-buy_price * lotsize)
 			
+			log.trace('avg_price: '..avg_price);
 			-- Средняя цена должна снизиться
 			if avg_price == 0 then
 				act_list[i][3] = buy_price;
+				log.trace('act_list[i][3](1): '..act_list[i][3]);
 			else
 				act_list[i][3] = avg_price * (1 - PRICE_STEP / 2);
+				log.trace('act_list[i][3](2): '..act_list[i][3]);
 			end;
 			
 		end; 
@@ -262,7 +248,12 @@ function sell_ticker (ticker)
 			sell_price = myqlua.getPrice(ticker);	-- Цену продажи ставлю текущую
 			buy_price = act_list[i][7];		-- 
 			
-			--log.trace('cnt_share: '..cnt_share);
+			log.trace('cnt_share: '..cnt_share);
+			log.trace('avg_price: '..avg_price);
+			log.trace('sell_level: '..sell_level);
+			log.trace('buy_level: '..buy_level);
+			log.trace('sell_price: '..sell_price);
+			log.trace('buy_price: '..buy_price);
 			
 			
 			-- Определить количество лотов на продажу 
@@ -347,6 +338,7 @@ function save_portfolio(amnt)
    
    
    
+   
 -- Функция возвращает массив строк. разделяет входящую строку inputstr разделителями sep
 function mysplit(inputstr, sep)
     if sep == nil then
@@ -363,3 +355,5 @@ end
 function OnStop()
    IsRun = false;
 end;
+
+return qlua_sma_botVTBR;

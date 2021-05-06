@@ -10,9 +10,9 @@ IsRun = true;
 log = require "log"
 myqlua = require "myqlua"
 
-local PRICE_STEP = 0.03		-- отклонение, которое считается достаточным для перехода на следующий уровень
-local act_list = {} 	-- матрица с инструментами
-local order_list = {}	-- список заявок
+local PRICE_STEP = 0.03			-- отклонение, которое считается достаточным для перехода на следующий уровень
+local act_list = {} 			-- матрица с инструментами
+local order_list = {}			-- список заявок
 local amount_rur = 0			-- кол-во денег
 local class_code = "TQBR"
 local PORTFOLIO_FILE = "portEELT.prt"
@@ -157,7 +157,7 @@ function qlua_sma_botEELT.main()
 			if myqlua.ifnull(buy_price, 0) > 0 and price < buy_price then 
 				lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
 				if amount_rur > (buy_price * lotsize) then
-					buy_ticker (ticker) 
+					buy_tickerEELT (ticker) 
 				else
 					log.trace("Нет денег на покупку "..ticker)
 				end
@@ -176,7 +176,7 @@ function qlua_sma_botEELT.main()
 end;
 
 -- Функция продажи инструмента
-function buy_ticker (ticker)
+function buy_tickerEELT (ticker)
 	-- Поставить заявку на покупку
 	log.trace('BUYING '..ticker);
 	-- Найти строку с этим инструментом 
@@ -214,7 +214,7 @@ function buy_ticker (ticker)
 			
 			-- Уменьшить счет рублей на цену покупки
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(-buy_price * lotsize)
+			add_rublesEELT(-buy_price * lotsize)
 			
 			-- Средняя цена должна снизиться
 			if avg_price == 0 then
@@ -231,7 +231,7 @@ end
 
 -- Функция покупки инструмента
 -- Добавить проверку на наличие достаточного количества денег
-function sell_ticker (ticker)
+function sell_tickerEELT (ticker)
 
 	log.trace('CELLING '..ticker);
 	-- Найти строку с этим инструментом 
@@ -274,7 +274,7 @@ function sell_ticker (ticker)
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(sell_price * lotsize)
+			add_rublesEELT(sell_price * lotsize)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;
@@ -290,7 +290,7 @@ function sell_ticker (ticker)
 end
 
 -- Функция добавляет сумму рублей amnt на счет
-function add_rubles(amnt)
+function add_rublesEELT(amnt)
 
 	prev_amnt = amount_rur
 	amount_rur = prev_amnt + amnt

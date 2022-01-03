@@ -234,7 +234,7 @@ end
 -- Добавить проверку на наличие достаточного количества денег
 function sell_tickerEELT (ticker)
 
-	log.trace('CELLING '..ticker);
+	log.trace('SELLING '..ticker);
 	-- Найти строку с этим инструментом 
 	for i = 1, #act_list do
 		if act_list[i][1] == ticker then
@@ -275,7 +275,7 @@ function sell_tickerEELT (ticker)
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rublesEELT(sell_price * lotsize)
+			add_rublesEELT(sell_price * cnt_share_to_cell)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;

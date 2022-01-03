@@ -228,7 +228,7 @@ function buy_ticker (ticker)
 			
 		end; 
 	end;
-	save_portfolio();
+	save_portfolioVTBR();
 end
 
 
@@ -294,7 +294,7 @@ function sell_ticker (ticker)
 		end; 
 	end;
 	
-	save_portfolio();
+	save_portfolioVTBR();
 end
 
 -- Функция добавляет сумму рублей amnt на счет
@@ -308,8 +308,8 @@ function add_rubles(amnt)
 end
 
 -- Функция должна сохранить портфель из списка act_list
-function save_portfolio(amnt)
-	log.trace("save_portfolio")
+function save_portfolioVTBR(amnt)
+	log.trace("save_portfolioVTBR")
 
 -- Пытается открыть файл в режиме "чтения/записи"
     f = io.open(getScriptPath().."\\"..PORTFOLIO_FILE, "w");

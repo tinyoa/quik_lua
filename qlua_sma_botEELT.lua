@@ -220,12 +220,13 @@ function buy_tickerEELT (ticker)
 			if avg_price == 0 then
 				act_list[i][3] = buy_price;
 			else
-				act_list[i][3] = avg_price * (1 - PRICE_STEP / 2);
+				act_list[i][3] = avg_price * (1 - PRICE_STEP / 2.0);
+				log.trace('updating avg_price from '..avg_price..' to '..act_list[i][3]);
 			end;
 			
 		end; 
 	end;
-	save_portfolio();
+	save_portfolioEELT();
 end
 
 
@@ -286,7 +287,7 @@ function sell_tickerEELT (ticker)
 		end; 
 	end;
 	
-	save_portfolio();
+	save_portfolioEELT();
 end
 
 -- Функция добавляет сумму рублей amnt на счет
@@ -300,8 +301,8 @@ function add_rublesEELT(amnt)
 end
 
 -- Функция должна сохранить портфель из списка act_list
-function save_portfolio(amnt)
-	log.trace("save_portfolio")
+function save_portfolioEELT(amnt)
+	log.trace("save_portfolioEELT "..PORTFOLIO_FILE)
 
 -- Пытается открыть файл в режиме "чтения/записи"
     f = io.open(getScriptPath().."\\"..PORTFOLIO_FILE, "w");

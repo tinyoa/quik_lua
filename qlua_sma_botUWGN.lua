@@ -64,7 +64,7 @@ function qlua_sma_botUWGN.main()
 			act_list[n][2] = arr[2];	-- Лот
 			act_list[n][3] = arr[3];	-- Цена
 			if (act_list[n][1] ~= 'rur') then
-				act_list[n][4] = arr[4];	-- Номер уровня продажи
+			act_list[n][4] = arr[4];	-- Номер уровня продажи
 				act_list[n][5] = arr[5];	-- Номер уровня покупки
 			end	
 			--[[log.trace('act_list['..n..'][1]:'..act_list[n][1]..' '
@@ -102,7 +102,7 @@ function qlua_sma_botUWGN.main()
 						.."avg_price: "..avg_price
 						.."sell_level: "..sell_level
 						.."buy_level: "..buy_level
-					);--[[]]
+						);--[[]]
 			
 			
 			-- Если есть что продавать, то сравнивается со средней ценой в портфеле

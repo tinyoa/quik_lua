@@ -56,7 +56,7 @@ function OnAllTrade(alltrade)
 				local t = tostring(H)..":"..tostring(M);
 				SetCell(t_id, Rows-1, 0, t);
 				SetCell(t_id, Rows-1, 1, tostring(VBUY));
-				SetCell(t_id, Rows-1, 2, tostring(VSELL));                      
+				SetCell(t_id, Rows-1, 2, tostring(VSELL));
 				SetCell(t_id, Rows-1, 3, tostring(Delta));
 				SetCell(t_id, Rows-1, 4, tostring(alltrade.price));
 

@@ -6,7 +6,8 @@ log = require "log"
 function main()
 	log.trace("test7.lua begin")
 	
-	ticker = "VTBR"
+	--ticker = "VTBR"
+	ticker = "UWGN";
 	
 	log.trace('os.date()'..os.date())
 	log.trace('os.date()'..os.date("%y-%m-%d"))

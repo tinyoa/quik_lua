@@ -23,15 +23,30 @@ function main()
 	
 	qlua_sma_botEELT.settings()
 	qlua_sma_botVTBR.settings()
-	qlua_sma_botUWGN.settings()
+	--qlua_sma_botUWGN.settings()
 	--qlua_sma_botETLN.settings()
 	
 	while IsRun do
-		--log.trace('iter')
-		qlua_sma_botEELT.main()
-		qlua_sma_botVTBR.main()
-		qlua_sma_botUWGN.main()
-		--qlua_sma_botETLN.main()
+	
+		--log.trace('os.date(!): '..os.date('!%Y-%m-%d-%H:%M:%S GMT', curTime));
+		
+		-- 
+		cur_hour = tonumber(os.date('!%H', curTime)) + 3;
+		log.trace('cur_hour: '..tostring(cur_hour));
+		if cur_hour >= 10 and cur_hour < 19 then
+			log.trace('cur_hour: '..tostring(cur_hour)..' time to trade');
+			--log.trace('iter')
+			qlua_sma_botEELT.main()
+			qlua_sma_botVTBR.main()
+			--qlua_sma_botUWGN.main()
+			--qlua_sma_botETLN.main()
+		else
+			log.trace('cur_hour: '..tostring(cur_hour)..' too early or late');
+		end;
+		
+		--print("os.date(!): "..os.date('!%Y-%m-%d-%H:%M:%S GMT', curTime))
+		
+		
 		sleep(60 * 60 * 1000); --Пауза 60 минут 
 	end;
 end;

@@ -214,7 +214,7 @@ function buy_tickerEELT (ticker)
 			
 			-- Уменьшить счет рублей на цену покупки
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rublesEELT(-buy_price * lotsize)
+			add_rublesEELT(-buy_price * lotsize * cnt_share_to_cell)
 			
 			-- Средняя цена должна снизиться
 			if avg_price == 0 then
@@ -275,7 +275,7 @@ function sell_tickerEELT (ticker)
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rublesEELT(sell_price * cnt_share_to_cell)
+			add_rublesEELT(sell_price * lotsize * cnt_share_to_cell)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;

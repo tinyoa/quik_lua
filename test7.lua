@@ -41,9 +41,6 @@ function main()
 	end 
 	
 	
-	
-	
-	
 	log.trace("test7.lua end") 
 
 	

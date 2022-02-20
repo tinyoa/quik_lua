@@ -86,7 +86,7 @@ function qlua_sma_botVTBR.main()
 		log.trace('--: '..act_list[i][1]);
 		if (act_list[i][1] ~= 'rur') then
 			ticker = act_list[i][1];
-			price = myqlua.getPrice(ticker);		-- !!! Заменить обратно, когда заработает сервер
+			price = myqlua.getPrice(ticker);		
 			--price = myqlua.getPriceTest(ticker);
 			
 			act_list[i][6] = price;
@@ -103,7 +103,6 @@ function qlua_sma_botVTBR.main()
 						.."sell_level: "..sell_level
 						.."buy_level: "..buy_level
 					);]]
-			
 			
 			-- Если есть что продавать, то сравнивается со средней ценой в портфеле
 			if cnt_share > 0 then
@@ -141,10 +140,10 @@ function qlua_sma_botVTBR.main()
 			log.trace("--ticker: "..ticker
 						.."; cnt_share: "..myqlua.ifnull(cnt_share, "-")
 						.."; price: "..myqlua.ifnull(price, "-")
-						--.."; avg_price: "..avg_price
-						--.."; sell_level: "..sell_level
+						.."; avg_price: "..avg_price
+						.."; sell_level: "..sell_level
 						.."; sell_price: "..myqlua.ifnull(sell_price, "-")
-						--.."; buy_level: "..buy_level
+						.."; buy_level: "..buy_level
 						.."; buy_price: "..myqlua.ifnull(buy_price, "-")
 					);
 			
@@ -214,7 +213,7 @@ function buy_ticker (ticker)
 			
 			-- Уменьшить счет рублей на цену покупки
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(-buy_price * lotsize)
+			add_rubles(-buy_price * lotsize * cnt_share_to_cell)
 			
 			log.trace('avg_price: '..avg_price);
 			-- Средняя цена должна снизиться
@@ -282,7 +281,7 @@ function sell_ticker (ticker)
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rubles(sell_price * cnt_share_to_cell)
+			add_rubles(sell_price * lotsize * cnt_share_to_cell)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;

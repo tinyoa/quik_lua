@@ -194,6 +194,68 @@ function myqlua.ifnull(s, repl)
 	end 
 end
 
+-- Округляет число до указанной точности
+function myqlua.math_round (num, idp)
+   local mult = 10^(idp or 0)
+   return math.floor(num * mult + 0.5) / mult
+end
+
+-- Удаление точки и нулей после нее
+function myqlua.RemoveZero(str)
+   while (string.sub(str,-1) == "0" and str ~= "0") do
+      str = string.sub(str,1,-2)
+   end
+   if (string.sub(str,-1) == ".") then 
+      str = string.sub(str,1,-2)
+   end   
+   return str
+end
+
+function myqlua.CurrentDate(format_num)
+	format_num = format_num or 0;
+
+	datetime = os.date("!*t",os.time());
+	y = tostring(datetime.year);
+	m = tostring(datetime.month);
+	d = tostring(datetime.day);
+
+	m = string.sub("0"..m, string.len(m), string.len(m) + 1);
+	d = string.sub("0"..d, string.len(d), string.len(d) + 1);
+
+	if format_num == 0 
+		then current_date = y.."-"..m.."-"..d
+	elseif format_num == 1
+		then current_date = y.." "..m.." "..d
+	elseif format_num == 2
+		then current_date = y.."\\"..m.."\\"..d
+	else current_date = y.."-"..m.."-"..d
+	end;
+	
+	log.trace("current_date "..current_date)
+	return current_date
+end
+
+function myqlua.trim(s)
+  local l = 1
+  while strsub(s,l,l) == ' ' do
+    l = l+1
+  end
+  local r = strlen(s)
+  while strsub(s,r,r) == ' ' do
+    r = r-1
+  end
+  return strsub(s,l,r)
+end
+
+function myqlua.remove_blanks (s)
+  local b = strfind(s, ' ')
+  while b do
+    s = strsub(s, 1, b-1) .. strsub(s, b+1)
+    b = strfind(s, ' ')
+  end
+  return s
+end
+
 
 -- (http://luaq.ru/sendTransaction.html)
 function random_max()

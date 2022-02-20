@@ -217,7 +217,7 @@ function buy_tickerUWGN (ticker)
 			
 			-- Уменьшить счет рублей на цену покупки
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rublesUWGN(-buy_price * lotsize)
+			add_rublesUWGN(-buy_price * lotsize * cnt_share_to_cell)
 			
 			-- Средняя цена должна снизиться
 			if avg_price == 0 then
@@ -277,7 +277,7 @@ function sell_tickerUWGN (ticker)
 			
 			-- Увеличить счет рублей на цену продажи
 			lotsize = getParamEx(class_code, ticker, "LOTSIZE").param_value;
-			add_rublesUWGN(sell_price * cnt_share_to_cell)
+			add_rublesUWGN(sell_price * lotsize * cnt_share_to_cell)
 			
 			-- Обновить остатки в портфеле
 			act_list[i][2] = act_list[i][2] - cnt_share_to_cell;
